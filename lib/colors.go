@@ -11,16 +11,24 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
+type Color struct {
+	Name       string
+	Percentage float64
+	Points     [][2]int
+}
+
 func rgbToString(u uint32) string {
 	return strconv.Itoa(int(uint8(u)))
 }
 
-func GetColorBreakDown(img image.Image) (map[string][][2]int, []string) {
+func GetColorBreakDown(img image.Image) []Color {
 	bounds := img.Bounds()
+	area := bounds.Dx() * bounds.Dy()
+
 	m := make(map[string][][2]int)
 
 	bar := progressbar.NewOptions(
-		bounds.Dx()*bounds.Dy(),
+		area,
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionSetDescription("Detecting colors"),
@@ -46,10 +54,23 @@ func GetColorBreakDown(img image.Image) (map[string][][2]int, []string) {
 	for k := range m {
 		keys = append(keys, k)
 	}
+	// try to reduce number of loops by sorting and creating summary in same loop?
 
 	sort.Slice(keys, func(i, j int) bool {
 		return len(m[keys[i]]) > len(m[keys[j]])
 	})
 
-	return m, keys
+	var summary []Color
+
+	for _, v := range keys {
+		summary = append(summary,
+			Color{
+				Name:       v,
+				Percentage: float64(len(m[v])) / float64(area) * 100.0,
+				Points:     m[v],
+			},
+		)
+	}
+
+	return summary
 }

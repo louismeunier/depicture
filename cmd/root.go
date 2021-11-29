@@ -16,6 +16,7 @@ import (
 var (
 	maxColors int
 	remote    bool
+	html      bool
 )
 
 var rootCmd = &cobra.Command{
@@ -64,18 +65,21 @@ var rootCmd = &cobra.Command{
 
 		}
 
-		breakdown, keys := lib.GetColorBreakDown(img)
-		bounds := img.Bounds()
+		colors := lib.GetColorBreakDown(img)
+
+		if html {
+			lib.GenerateHTMLSummary(imagePath, colors)
+		}
 
 		max := maxColors
-		if max > len(keys) {
-			max = len(keys)
+		if max > len(colors) {
+			max = len(colors)
 		}
 
 		fmt.Println()
-		for i := 0; i < max; i++ {
-			percent := float64(len(breakdown[keys[i]])) / float64(bounds.Max.X*bounds.Max.Y) * 100
-			fmt.Printf("%f%% rgba(%s)\n", percent, keys[i])
+
+		for _, color := range colors[:max] {
+			fmt.Printf("%f%% rgba(%s)\n", color.Percentage, color.Name)
 		}
 	},
 }
@@ -83,7 +87,9 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	// flags
 	rootCmd.PersistentFlags().IntVarP(&maxColors, "max-colors", "c", 3, "maximum colors to return")
-	rootCmd.PersistentFlags().BoolVarP(&remote, "remote", "r", false, "whether the file is not on your computer (ie a url)")
+	rootCmd.PersistentFlags().BoolVarP(&remote, "remote", "r", false, "whether the file is remote")
+	rootCmd.PersistentFlags().BoolVarP(&html, "summary", "s", false, "whether to create an html summary of the results to ./index.html")
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
