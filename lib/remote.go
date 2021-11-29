@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -9,6 +10,8 @@ import (
 )
 
 func GetRemoteImage(url string) (image.Image, error) {
+	fmt.Println("🖼️ Fetching remote image...")
+
 	request, err := http.Get(url)
 
 	if err != nil {

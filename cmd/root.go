@@ -39,6 +39,7 @@ var rootCmd = &cobra.Command{
 				os.Exit(1)
 			}
 		} else {
+			fmt.Println("🖼️ Checking local image...")
 			_, err := os.Stat(imagePath)
 			if os.IsNotExist(err) {
 				fmt.Printf("❌ Image \"%s\" is not found", imagePath)
@@ -66,8 +67,13 @@ var rootCmd = &cobra.Command{
 		breakdown, keys := lib.GetColorBreakDown(img)
 		bounds := img.Bounds()
 
+		max := maxColors
+		if max > len(keys) {
+			max = len(keys)
+		}
+
 		fmt.Println()
-		for i := 0; i < maxColors; i++ {
+		for i := 0; i < max; i++ {
 			percent := float64(len(breakdown[keys[i]])) / float64(bounds.Max.X*bounds.Max.Y) * 100
 			fmt.Printf("%f%% rgba(%s)\n", percent, keys[i])
 		}
