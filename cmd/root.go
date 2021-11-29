@@ -26,6 +26,11 @@ var rootCmd = &cobra.Command{
 		See source code and more: https://github.com/louismeunier/depicture.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			fmt.Println("❌ Please provide a valid image path as first argument")
+			os.Exit(1)
+		}
+
 		imagePath := args[0]
 
 		var img image.Image
@@ -35,7 +40,6 @@ var rootCmd = &cobra.Command{
 			img, err = lib.GetRemoteImage(imagePath)
 
 			if err != nil {
-				fmt.Println(err)
 				fmt.Println("❌ Remote image not found", imagePath)
 				os.Exit(1)
 			}
