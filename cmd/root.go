@@ -12,8 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// flags
 var (
 	maxColors int
+	remote    bool
 )
 
 var rootCmd = &cobra.Command{
@@ -24,31 +26,47 @@ var rootCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		imagePath := args[0]
-		_, err := os.Stat(imagePath)
-		if os.IsNotExist(err) {
-			fmt.Printf("❌ Image \"%s\" is not found", imagePath)
-			os.Exit(1)
-		}
 
-		imageReader, err := os.Open(imagePath)
+		var img image.Image
+		var err error
 
-		if err != nil {
-			fmt.Println("❌ That file was found, but an error occurred opening it")
-			os.Exit(1)
-		}
+		if remote {
+			img, err = lib.GetRemoteImage(imagePath)
 
-		defer imageReader.Close()
+			if err != nil {
+				fmt.Println(err)
+				fmt.Println("❌ Remote image not found", imagePath)
+				os.Exit(1)
+			}
+		} else {
+			_, err := os.Stat(imagePath)
+			if os.IsNotExist(err) {
+				fmt.Printf("❌ Image \"%s\" is not found", imagePath)
+				os.Exit(1)
+			}
 
-		img, _, err := image.Decode(imageReader)
+			imageReader, err := os.Open(imagePath)
 
-		if err != nil {
-			fmt.Println("❌ Failed to decode that file")
-			os.Exit(1)
+			if err != nil {
+				fmt.Println("❌ That file was found, but an error occurred opening it")
+				os.Exit(1)
+			}
+
+			defer imageReader.Close()
+
+			img, _, err = image.Decode(imageReader)
+
+			if err != nil {
+				fmt.Println("❌ Failed to decode that file")
+				os.Exit(1)
+			}
+
 		}
 
 		breakdown, keys := lib.GetColorBreakDown(img)
 		bounds := img.Bounds()
 
+		fmt.Println()
 		for i := 0; i < maxColors; i++ {
 			percent := float64(len(breakdown[keys[i]])) / float64(bounds.Max.X*bounds.Max.Y) * 100
 			fmt.Printf("%f%% rgba(%s)\n", percent, keys[i])
@@ -57,8 +75,9 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
+	// flags
 	rootCmd.PersistentFlags().IntVarP(&maxColors, "max-colors", "c", 3, "maximum colors to return")
-
+	rootCmd.PersistentFlags().BoolVarP(&remote, "remote", "r", false, "whether the file is not on your computer (ie a url)")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
