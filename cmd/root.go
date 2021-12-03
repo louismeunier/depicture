@@ -17,6 +17,7 @@ var (
 	maxColors int
 	remote    bool
 	html      bool
+	fill      bool
 )
 
 var rootCmd = &cobra.Command{
@@ -83,7 +84,10 @@ var rootCmd = &cobra.Command{
 		fmt.Println()
 
 		for _, color := range colors[:max] {
-			fmt.Printf("%f%% rgba(%s)\n", color.Percentage, color.Name)
+			fmt.Printf("%f%% rgba%s\n", color.Percentage, color.Name)
+			if fill {
+				lib.Fill(img, color.RGBA, color.Name)
+			}
 		}
 	},
 }
@@ -93,6 +97,7 @@ func Execute() {
 	rootCmd.PersistentFlags().IntVarP(&maxColors, "max-colors", "c", 3, "maximum colors to return")
 	rootCmd.PersistentFlags().BoolVarP(&remote, "remote", "r", false, "whether the file is remote")
 	rootCmd.PersistentFlags().BoolVarP(&html, "summary", "s", false, "whether to create an html summary of the results to ./index.html")
+	rootCmd.PersistentFlags().BoolVarP(&fill, "fill", "f", false, "whether to create new images with top -c colors filled")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
