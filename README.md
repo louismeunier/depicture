@@ -10,7 +10,8 @@
 ```
   depicture <image/path> [flags]
 
-    Flags:
+  Flags:
+    -f, --fill             whether to create new images with top -c colors filled
     -h, --help             help for depicture
     -c, --max-colors int   maximum colors to return (default 3)
     -r, --remote           whether the file is remote
